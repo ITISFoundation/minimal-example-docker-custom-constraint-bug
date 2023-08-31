@@ -39,7 +39,3 @@ ansible/inventory.ini: ansible/inventory.ini.j2 .venv .env-terraform  ## Create 
 visualize-tf: ## Visualize the terraform graph
 	@cd terraform && \
 	terraform graph | docker run --rm -i --name terraform-graph-beautifier ghcr.io/pcasteran/terraform-graph-beautifier:latest-linux --output-type=cyto-html > terraformgraph.html
-
-.PHONY: ansible-provision
-ansible-provision: ansible/inventory.ini ## Provision terraform machines with ansible
-	@sudo ansible-playbook -i ansible/inventory.ini -u ansible ansible/playbooks/minimalexample_dockerversion.yml

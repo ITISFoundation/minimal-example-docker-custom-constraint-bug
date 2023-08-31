@@ -8,7 +8,7 @@
     - include: config/max_filedescriptors/max_filedescriptors.yml
     - include: jq/configure_jq.yml
     - include: pyenv/install_pyenv.yml
-    - include: docker/install_docker.yml
+    - include: docker/install_docker_20.yml
     - include: docker/install_docker_compose_v1.yml
     - include: config/prometheus-docker-config/prometheus_docker_config.yml
     - include: git/configure_git.yml

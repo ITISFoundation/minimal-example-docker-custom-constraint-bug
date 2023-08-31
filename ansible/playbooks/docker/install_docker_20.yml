@@ -1,4 +1,4 @@
-- name: Install a few prerequisite packages
+- name: Install a few prerequisite packages for docker
   apt:
     update_cache: yes
     name:
@@ -22,7 +22,7 @@
     update_cache: yes
     force: True
     name:
-      - docker-ce=5:24.0.5-1~ubuntu.20.04~focal
+      - docker-ce=5:20.10.14~3-0~ubuntu-focal
       - docker-compose-plugin
       - docker-ce-cli
 
