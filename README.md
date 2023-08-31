@@ -2,7 +2,7 @@
 
 This is code to reproduce a bug in docker swarm mode with generic resources. The bug is at least present in docker version 24.x and not present in docker version 20.x, at least when running on this configuration.
 
-For the example, a terraform cloud environment with 3 EC2 achines is created on AWS on demand. One of the machines is a swarm manager, the two others are workers. One of the workers is a GPU machine, with a docker swarm generic resource called "VRAM" and a docker node lbael called "gpu". The other worker is a CPU machine, with a docker node label called "cpu".
+For the example, a terraform cloud environment with 3 EC2 achines is created on AWS on demand. One of the machines is a swarm manager, the two others are workers. One of the workers is a GPU machine, with a docker swarm generic resource called "VRAM" and a docker node label called "gpu". The other worker is a CPU machine, with a docker node label called "cpu".
 
 For reproducibility, ansible is used to provision the machines (starting from a vanilla ubuntu-20.04 AMI).
 
