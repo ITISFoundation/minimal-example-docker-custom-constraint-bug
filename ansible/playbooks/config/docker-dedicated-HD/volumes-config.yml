@@ -1,0 +1,52 @@
+- name: Register the name of the volume for docker later
+  shell: >-
+    lsblk | grep -E {{dedicated_docker_volume_lsblk_size}} | head -n1 | awk '{print $1;}'
+  register: volume_name
+- debug: msg="Register the name of the volume for docker later as {{volume_name.stdout}}"
+
+- name: Stop docker in systemctl
+  shell: systemctl stop docker
+  become: yes
+
+- name: Unmount /docker if mounted (ensure idempotency)
+  shell: umount /docker
+  become: yes
+  ignore_errors: yes
+
+- name: Add GPT label to disks
+  shell: parted /dev/{{ volume_name.stdout }} --script -- mklabel gpt
+  become: yes
+
+- name: Add partition to disk which will take the entire size of the disk
+  shell: parted /dev/{{ volume_name.stdout }} --script  -- mkpart primary 0% 100%
+  become: yes
+
+- name: Register the name of the new created partition
+  shell: >-
+    lsblk | grep -E {{dedicated_docker_volume_lsblk_size}} | grep part | head -n1 | awk '{print $1;}' | cut -c 7-
+  register: partition_name
+- debug: msg="Register the name of the new created partition as {{partition_name.stdout}}"
+
+- name: Add filesystem to partitions
+  shell: mkfs.xfs -f -n ftype=1 /dev/{{ partition_name.stdout }}
+
+- name: Assure xfs ftype is set corretly
+  shell: xfs_info /dev/{{ partition_name.stdout }} | grep "ftype=1"
+
+- name: Force Kernel to reread partitions
+  shell: blockdev --rereadpt /dev/{{ volume_name.stdout }}
+
+- name: Mount partition
+  mount:
+    path: /docker/
+    src: /dev/{{ partition_name.stdout  }}
+    state: mounted
+    opts: pquota
+    fstype: xfs
+
+- name: Reboot the machine
+  reboot:
+
+- name: start docker in systemctl
+  shell: systemctl start docker
+  become: yes

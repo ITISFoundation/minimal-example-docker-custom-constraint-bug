@@ -1,0 +1,21 @@
+- name: install pip3
+  apt: name=python3-pip state=present
+
+- name: Install necessary pip package
+  pip:
+    name: docker
+
+- name: Leave any existing swarms
+  docker_swarm:
+    state: absent
+    force: true
+  when:
+    - (tags is not search("MANAGER") and swarmWorkerJoinToken is not defined) or (tags is search("MANAGER") and swarmManagerJoinToken is not defined)
+    - provisioning_leaveExistingSwarm is defined
+
+- name: Leave any existing swarms - making doubly sure
+  shell: >
+    docker swarm leave --force | true
+  when:
+    - (tags is not search("MANAGER") and swarmWorkerJoinToken is not defined) or (tags is search("MANAGER") and swarmManagerJoinToken is not defined)
+    - provisioning_leaveExistingSwarm is defined

@@ -1,0 +1,57 @@
+
+- name: Pyenv - Apt Install suggested requirements
+  apt:
+    update_cache: yes
+    name:
+      - python3-pip
+      - make
+      - build-essential
+      - libssl-dev
+      - zlib1g-dev
+      - libbz2-dev
+      - libreadline-dev
+      - libsqlite3-dev
+      - wget
+      - curl
+      - llvm
+      - libncursesw5-dev
+      - xz-utils
+      - tk-dev
+      - libxml2-dev
+      - libxmlsec1-dev
+      - libffi-dev
+      - liblzma-dev
+- name: Install pyenv
+  remote_user: ubuntu
+  environment:
+    HOME: /home/ubuntu
+  shell:
+    cmd: |
+      [ -d "/home/ubuntu/.pyenv" ] || sudo -u ubuntu bash -c "export PYENV_GIT_TAG=v2.3.25 && curl https://pyenv.run | bash"
+- name: Add necessary pyenv loads to .bashrc of user ubuntu
+  remote_user: ubuntu
+  blockinfile:
+    dest: /home/ubuntu/.bashrc
+    backup: no
+    block: |
+      export PYENV_ROOT="$HOME/.pyenv"
+      command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
+      eval "$(pyenv init -)"
+- name: Install default version of python via pyenv - 3.11.2
+  remote_user: ubuntu
+  become_user: ubuntu
+  environment:
+    HOME: /home/ubuntu
+  args:
+    executable: /bin/bash
+  shell: |
+    source /home/ubuntu/.bashrc && /home/ubuntu/.pyenv/bin/pyenv install 3.11.2 -s
+- name: Set default global version of python via pyenv - 3.11.2
+  remote_user: ubuntu
+  become_user: ubuntu
+  environment:
+    HOME: /home/ubuntu
+  args:
+    executable: /bin/bash
+  shell: |
+    source /home/ubuntu/.bashrc && /home/ubuntu/.pyenv/bin/pyenv global 3.11.2

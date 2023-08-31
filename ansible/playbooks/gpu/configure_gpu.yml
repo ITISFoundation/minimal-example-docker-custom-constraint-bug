@@ -1,0 +1,110 @@
+- name: Add driver repo
+  shell : add-apt-repository -y ppa:graphics-drivers > /dev/null 2>&1
+
+- name: Install graphic drivers
+  apt:
+    update_cache: yes
+    name:
+      - nvidia-driver-440
+  register: installNvidiaGraphicsDriver
+
+- name: Reboot the machine
+  reboot:
+  when: installNvidiaGraphicsDriver.changed
+
+- name: Register ubuntu version
+  shell: . /etc/os-release;echo $ID$VERSION_ID
+  register: distribution
+
+- debug:
+    msg: System {{ distribution.stdout }}
+
+- name: Add nvidia GPT Key
+  shell: curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
+
+- name: Add nvidia toolkit to sources
+  shell: curl -s -L https://nvidia.github.io/nvidia-docker/{{distribution.stdout}}/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+
+- name: Install nvidia-docker
+  apt:
+    update_cache: yes
+    name:
+    - nvidia-docker2
+  register: installNvidiaDocker
+
+- name: Restart docker
+  shell: systemctl restart docker
+  retries: 3
+  delay: 3
+  register: result
+  until: result.rc == 0
+  when: installNvidiaDocker.changed
+
+- name: Assert nvidia-smi command runs
+  shell: nvidia-smi
+  when: installNvidiaDocker.changed
+
+- name: Assert CUDA works inside a docker container
+  shell: docker run --rm --gpus all nvidia/cuda:11.6.2-base-ubuntu20.04 nvidia-smi
+  when: installNvidiaDocker.changed
+
+- name: Determine GPU RAM in MiB
+  shell: echo $((-10+$(nvidia-smi -q -d MEMORY | grep Total | cut -d ":" -f2 | sort -h | tail -1 | cut -d " " -f2)))
+  register: gpuram
+
+- debug:
+    msg: GPU RAM in MiB {{ gpuram.stdout }}
+
+- name: Create /etc/systemd/system/docker.service.d folder
+  file:
+    path: /etc/systemd/system/docker.service.d
+    state: directory
+
+- name: Add AIRAM configuration to /etc/systemd/system/docker.service.d
+  template:
+    src: scripts/nvidia-containers.conf.AIRAM.j2
+    dest: /etc/systemd/system/docker.service.d/nvidia-containers.conf
+  when:
+   - tags is not search("VRAM")
+   - tags is search("AIRAM")
+
+- name: Add VRAM configuration to /etc/systemd/system/docker.service.d
+  template:
+    src: scripts/nvidia-containers.conf.VRAM.j2
+    dest: /etc/systemd/system/docker.service.d/nvidia-containers.conf
+  when:
+   - tags is search("VRAM")
+   - tags is not search("AIRAM")
+
+- name: Add VRAM and AIRAM configuration to /etc/systemd/system/docker.service.d
+  template:
+    src: scripts/nvidia-containers.conf.VRAM_AIRAM.j2
+    dest: /etc/systemd/system/docker.service.d/nvidia-containers.conf
+  when:
+   - tags is search("VRAM")
+   - tags is search("AIRAM")
+
+- name: Add configuration /etc/nvidia-container-runtime/config.tom
+  shell: echo 'swarm-resource = "DOCKER_RESOURCE_GPU"' > /etc/nvidia-container-runtime/config.tom
+
+- name: Add configuration /etc/docker/daemon.json
+  shell: >-
+       jq '. += {"default-runtime": "nvidia", "runtimes": { "nvidia": { "path": "/usr/bin/nvidia-container-runtime", "runtimeArgs": [] }}}' /etc/docker/daemon.json > tmp.json && mv tmp.json /etc/docker/daemon.json
+
+- name: kill dockerd
+  shell: pkill -SIGHUP dockerd
+
+- name: Reload systemd manager configuration
+  shell: systemctl daemon-reload
+
+- name: Restart docker
+  shell: systemctl restart docker
+
+- name: Check if the nvidia-smi check is functional and integrated in the bashrc
+  shell: cat /home/ubuntu/.bashrc | grep nvidia-smi | wc -l
+  register: test_nvidia_smi
+
+- name: Add a nvidia-smi check after each reboot. If the test fails, a message will appear in the terminal.
+  become: yes
+  script: scripts/nvidia-smi_test.bash
+  when: test_nvidia_smi.stdout == "0"

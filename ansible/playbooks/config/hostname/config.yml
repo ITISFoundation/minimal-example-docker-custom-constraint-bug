@@ -1,0 +1,6 @@
+- name: Configure machine hostname
+  shell: hostnamectl set-hostname {{ inventory_hostname }}
+  become: yes
+
+- debug:
+    msg: Node hostname is set to {{ inventory_hostname }}

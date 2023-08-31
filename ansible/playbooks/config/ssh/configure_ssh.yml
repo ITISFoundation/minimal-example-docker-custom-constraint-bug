@@ -1,0 +1,15 @@
+- name: set ssh key from file
+  authorized_key: # This will change to ansible.posix.authorized_key in ansible 2.10
+    user: ubuntu
+    state: present
+    key: "{{ lookup('file', deployment_public_key_file) }}"
+- name: Overwrite ssh-config file if it exists
+  template:
+    src: ./ssh.config.j2
+    dest: '/etc/ssh/sshd_config'
+    force: yes
+- name: Restart ssh service, also issue daemon-reload to pick up config changes
+  ansible.builtin.systemd:
+    state: restarted
+    daemon_reload: yes
+    name: ssh

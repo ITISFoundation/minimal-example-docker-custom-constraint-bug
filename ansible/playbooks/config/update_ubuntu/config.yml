@@ -1,0 +1,4 @@
+
+- name: Force unattended-upgrade to run
+  shell: unattended-upgrade -d
+  become: yes

@@ -1,0 +1,32 @@
+- name: Install a few prerequisite packages
+  apt:
+    update_cache: yes
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - software-properties-common
+
+- name: Add GPG key for the official Docker repository
+  shell: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+
+- name: Add the Docker repository to APT sources
+  shell: add-apt-repository --yes "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable"
+  become: yes
+
+- name: Make sure you are about to install from the Docker repo instead of the default Ubuntu repo
+  shell: apt-cache policy docker-ce
+
+- name: Install docker and docker compose plugin
+  apt:
+    update_cache: yes
+    force: True
+    name:
+      - docker-ce=5:24.0.5-1~ubuntu.20.04~focal
+      - docker-compose-plugin
+      - docker-ce-cli
+
+- name: Add users to docker group
+  shell: usermod -aG docker {{ item }}
+  loop:
+  - ubuntu

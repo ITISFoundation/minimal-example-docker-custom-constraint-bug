@@ -1,0 +1,6 @@
+- name: Add configuration /etc/docker/daemon.json for prometheus
+  shell: >-
+       echo '{"metrics-addr": "0.0.0.0:9323", "experimental": true}' > /etc/docker/daemon.json
+
+- name: Restart docker
+  shell: systemctl restart docker

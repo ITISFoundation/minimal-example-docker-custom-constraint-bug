@@ -1,0 +1,13 @@
+- name: Disable swap memory
+  shell: >-
+      sed -i '/^.*swap.*$/d' /etc/fstab
+  become: yes
+- name: Reboot the machine
+  reboot:
+- name: Check /proc/swaps
+  shell: cat /proc/swaps | wc -l
+  register: number_of_lines_in_proc_swaps
+- name: Assert that swap memory is properly disabled
+  assert:
+    that:
+    - number_of_lines_in_proc_swaps.stdout == "1"

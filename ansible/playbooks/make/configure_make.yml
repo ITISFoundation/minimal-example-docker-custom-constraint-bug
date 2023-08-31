@@ -1,0 +1,5 @@
+- name: Install make
+  apt:
+    update_cache: yes
+    name:
+      - make

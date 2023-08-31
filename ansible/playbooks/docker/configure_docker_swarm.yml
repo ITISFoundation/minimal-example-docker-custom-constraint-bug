@@ -1,0 +1,91 @@
+- name: install pip3
+  apt: name=python3-pip state=present
+
+- name: Install necessary pip package
+  pip:
+    name: docker
+
+- name: Init a new swarm with default parameters
+  docker_swarm:
+    state: present
+    heartbeat_tick: 30
+    election_tick: 30
+    dispatcher_heartbeat_period: 60000000000 # 60s: This is - weirdly enough - in nanoseconds
+    advertise_addr: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}"
+    debug: no
+  when:
+  - tags is search("MANAGER")
+  - provisioning_leaveExistingSwarm is defined
+  register: swarmFact
+
+- name: Save swarm infos for all machines
+  set_fact:
+    swarmFacts: "{{swarmFact}}"
+  delegate_to: "{{ item }}"
+  with_items: "{{ play_hosts }}"
+  run_once: yes
+  when:
+  - tags is search("MANAGER")
+  - provisioning_leaveExistingSwarm is defined
+
+- name: Get manager IP
+  set_fact:
+    manager_ip: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}"
+  delegate_to: "{{ item }}"
+  with_items: "{{ play_hosts }}"
+  run_once: yes
+  when: tags is search("MANAGER")
+- debug:
+    msg: Get manager IP {{ manager_ip }}
+  when: manager_ip is defined
+
+
+- name: 'Check for: Wrong variable combination provided in playbook'
+  fail:
+    msg: 'Wrong variable combination provided in playbook: "leaderMachineIP" needed.'
+  when:
+   - swarmWorkerJoinToken is defined or swarmManagerJoinToken is defined
+   - leaderMachineIP is not defined
+
+- name: Join the new swarm as worker
+  docker_swarm:
+    state: join
+    advertise_addr: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}"
+    remote_addrs: ["{{manager_ip}}"]
+    join_token: "{{swarmFacts.swarm_facts.JoinTokens.Worker}}"
+  when:
+   - tags is not search("MANAGER")
+   - provisioning_leaveExistingSwarm is defined
+   - swarmWorkerJoinToken is not defined
+- name: Join the existing swarm as worker
+  docker_swarm:
+    state: join
+    advertise_addr: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}"
+    remote_addrs: ["{{leaderMachineIP}}"]
+    join_token: "{{swarmWorkerJoinToken}}"
+  when:
+   - tags is not search("MANAGER")
+   - swarmWorkerJoinToken is defined
+   - leaderMachineIP is defined
+
+- name: Join the new swarm as manager
+  docker_swarm:
+    state: join
+    advertise_addr: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}"
+    remote_addrs: ["{{manager_ip}}"]
+    join_token: "{{swarmFacts.swarm_facts.JoinTokens.Manager}}"
+  when:
+   - tags is search("MANAGER")
+   - ansible_host != manager_ip
+   - provisioning_leaveExistingSwarm is defined
+- name: Join the existing swarm as manager
+  docker_swarm:
+    state: join
+    advertise_addr: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}"
+    remote_addrs: ["{{leaderMachineIP}}"]
+    join_token: "{{swarmManagerJoinToken}}"
+  when:
+   - tags is search("MANAGER")
+   - swarmManagerJoinToken is defined
+   - leaderMachineIP is defined
+   - ansible_host != leaderMachineIP

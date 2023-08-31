@@ -1,0 +1,21 @@
+[INVENTORY_UNIX]
+testingManager1 ansible_host="{{eipmanager1}}" tags="DOCKER_HOME, MANAGER, MANAGER"
+testingGpu1 ansible_host="{{eipgpu}}" tags="DOCKER_HOME, GPU, VRAM"
+testingSimcore1 ansible_host="{{eipnogpu}}" tags="DOCKER_HOME"
+
+[INVENTORY_UNIX:vars]
+ansible_user=ubuntu
+ansible_ssh_private_key_file='./terraform/key_openssh.pem'
+ansible_ssh_common_args='-o StrictHostKeyChecking=no' # disable hostkey checking
+ansible_become=yes
+# We need to define the root-password twice, to prevent us from having to use vaults, see https://stackoverflow.com/questions/37297249/how-to-store-ansible-become-pass-in-a-vault-and-how-to-use-it
+ansible_become_pass=t2e4raFbhckf
+become_pass=t2e4raFbhckf
+#
+deployment_public_key_file='../../terraform/key_openssh.pub'
+#
+# CAREFUL: If you uncomment this, an exisiting swarm will be left during machine provisioning.
+provisioning_leaveExistingSwarm=yes
+#
+# For volume provisioning, add size of hard drive targeted for docker volumes:
+dedicated_docker_volume_lsblk_size=894.3G\|931.5\|1.8T\|1000G

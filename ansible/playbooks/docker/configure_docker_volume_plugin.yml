@@ -1,0 +1,25 @@
+- name: install_fuse # VIA https://rclone.org/docker/
+  apt:
+    update_cache: yes
+    name:
+      - fuse=2.9.9-3
+- name: Create two directory required by rclone docker plugin
+  file:
+    path: /var/lib/docker-plugins/rclone/config
+    state: directory
+    mode: 0775
+    recurse: yes
+- name: Create directory required by rclone docker plugin
+  file:
+    path: /var/lib/docker-plugins/rclone/cache
+    state: directory
+    mode: 0775
+    recurse: yes
+- name: Install the managed rclone docker plugin
+  shell:  docker plugin install rclone/docker-volume-rclone:amd64-1.57.0 args="-v" --alias rclone --grant-all-permissions
+  register: install_docker_plugin_command_result
+  ignore_errors: True
+- name: fail the play if the previous command did not succeed
+  fail:
+    msg: "the command failed"
+  when: "'already exists' not in install_docker_plugin_command_result.stderr and install_docker_plugin_command_result.rc != 0"

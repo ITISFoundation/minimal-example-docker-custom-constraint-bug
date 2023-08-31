@@ -1,0 +1,10 @@
+.vscode/*
+.venv/*
+*.secret
+.env-terraform
+ansible/inventory.ini
+terraform/*.pem
+terraform/*.pub
+**/*.tfstate
+**/*.tfstate.*
+terraform/.terraform/**

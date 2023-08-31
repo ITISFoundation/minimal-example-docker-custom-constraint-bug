@@ -1,0 +1,6 @@
+- name: Change (elevate) number of max open file descriptors #This will take effect after reboot
+  shell: bash -c 'grep -qxF "fs.inotify.max_user_watches=524288" /etc/sysctl.conf || echo "fs.inotify.max_user_watches=524288" >> /etc/sysctl.conf'
+  become: yes
+- name: Apply max filedescriptor change # This will take effect immedeatly: https://unix.stackexchange.com/questions/444998/how-to-set-and-understand-fs-notify-max-user-watches
+  shell: sysctl -w fs.inotify.max_user_watches=524288 && sleep 0.1 && sysctl -p
+  become: yes

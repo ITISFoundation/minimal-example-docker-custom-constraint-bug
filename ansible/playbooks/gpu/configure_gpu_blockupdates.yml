@@ -1,0 +1,18 @@
+- name: Block automatic updates
+  shell: apt-mark hold nvidia-driver-440
+
+- name: Block automatic updates
+  shell: apt-mark hold nvidia-driver-450
+
+- name: Block automatic updates
+  shell: apt-mark hold nvidia-utils-450:amd64
+
+- name: Block automatic updates
+  shell: apt-mark hold xserver-xorg-video-nvidia-450:amd64
+
+- name: Regex block nvidia driver auto-update
+  become: yes
+  lineinfile:
+    path: /etc/apt/apt.conf.d/50unattended-upgrades
+    line: '    "nvidia-";'
+    insertafter: .*Unattended-Upgrade::Package-Blacklist.*
