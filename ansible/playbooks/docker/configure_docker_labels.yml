@@ -1,0 +1,32 @@
+- name: Copy python script
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/docker/update_docker_labels"
+    dest: /tmp
+
+- name: Copy inventory
+  ansible.builtin.copy:
+    src: "{{ inventory_file }}"
+    dest: /tmp/inventory
+
+- block:
+  - name: Run update node labels (may take a few minutes)
+    command: |
+      docker run --rm \
+        -v "/tmp/update_docker_labels":/app \
+        -v "/tmp/inventory":/app/inventory \
+        -v /var/run/docker.sock:/var/run/docker.sock \
+        -w /app
+        itisfoundation/ci-provisioned-ubuntu:0.4.0 \
+        sh -c "pip install -r requirements.txt > /dev/null && python main.py inventory"
+  always:  # cleanup
+  - name: Remove python script
+    file:
+      path: /tmp/update_docker_labels
+      state: absent
+    ignore_errors: yes
+
+  - name: Remove inventory files
+    file:
+      path: /tmp/inventory
+      state: absent
+    ignore_errors: yes

@@ -4,24 +4,26 @@
   gather_facts: True
 
   tasks:
-    - include: config/hostname/config.yml
-    - include: config/max_filedescriptors/max_filedescriptors.yml
-    - include: jq/configure_jq.yml
-    - include: pyenv/install_pyenv.yml
+    #- include: config/hostname/config.yml
+    #- include: config/max_filedescriptors/max_filedescriptors.yml
+    #- include: jq/configure_jq.yml
+    #- include: pyenv/install_pyenv.yml
     - include: docker/install_docker_20.yml
-    - include: docker/install_docker_compose_v1.yml
-    - include: config/prometheus-docker-config/prometheus_docker_config.yml
-    - include: git/configure_git.yml
-      when: tags is search("MANAGER")
-    - include: make/configure_make.yml
-      when: tags is search("MANAGER")
-    - include: venv/configure_venv.yml
-      when: tags is search("MANAGER")
-    - include: gpu/configure_gpu.yml
-      when: tags is search("GPU")
-    - include: config/docker/docker-config.yml
-    - include: disable-swap/swap-config.yml
-    - include: config/update_ubuntu/config.yml
+    #- include: docker/install_docker_compose_v1.yml
+    #- include: config/prometheus-docker-config/prometheus_docker_config.yml
+    #- include: git/configure_git.yml
+    #  when: tags is search("MANAGER")
+    #- include: make/configure_make.yml
+    #  when: tags is search("MANAGER")
+    #- include: venv/configure_venv.yml
+    #  when: tags is search("MANAGER")
+    #- include: gpu/configure_gpu.yml
+    #  when: tags is search("GPU")
+    #- include: config/docker/docker-config.yml
+    #- include: disable-swap/swap-config.yml
+    #- include: config/update_ubuntu/config.yml
     - include: docker/configure_docker_leave_existing_swarm.yml
     - include: docker/configure_docker_swarm.yml
+    - include: docker/configure_docker_labels.yml
+      when: tags is search("MANAGER")
     - include: config/ssh/configure_ssh.yml
