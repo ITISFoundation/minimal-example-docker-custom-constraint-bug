@@ -29,8 +29,10 @@ In this example, a docker service with a specific placement constraint given by 
 
 ```
 ansible-galaxy collection install community.docker
+export TF_VAR_aws_secret_key=AWS_SECRET_KEY
+export TF_VAR_aws_access_key=AWS_ACCESS_KEY
 cd terraform && terraform init && terraform plan
-TF_VAR_aws_secret_key=AWS_SECRET_KEY TF_VAR_aws_access_key=AWS_ACCESS_KEY terraform apply -auto-approve
+terraform apply -auto-approve
 cd ..
 make ansible/inventory.ini
 sudo ansible-playbook -i ansible/inventory.ini -u ansible ansible/playbooks/minimalexample_dockerversion_24.yml
@@ -48,8 +50,10 @@ In this example, a docker service with a specific placement constraint given by 
 
 ```
 ansible-galaxy collection install community.docker
+export TF_VAR_aws_secret_key=AWS_SECRET_KEY
+export TF_VAR_aws_access_key=AWS_ACCESS_KEY
 cd terraform && terraform init && terraform plan
-TF_VAR_aws_secret_key=AWS_SECRET_KEY TF_VAR_aws_access_key=AWS_ACCESS_KEY terraform apply -auto-approve
+terraform apply -auto-approve
 cd ..
 make ansible/inventory.ini
 sudo ansible-playbook -i ansible/inventory.ini -u ansible ansible/playbooks/minimalexample_dockerversion_20.yml

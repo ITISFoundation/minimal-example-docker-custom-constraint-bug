@@ -7,7 +7,6 @@ resource "aws_vpc" "dev-vpc" {
   enable_network_address_usage_metrics = false
   instance_tenancy                     = "default"
   tags = {
-
     "Name" = "dev-vpc"
   }
 }
@@ -19,7 +18,6 @@ resource "aws_subnet" "dev-subnet1" {
   map_public_ip_on_launch = true
   cidr_block              = "10.0.0.0/23"
   tags = {
-
     "Name" = "dev-subnet1"
   }
 }

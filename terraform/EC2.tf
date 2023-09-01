@@ -1,6 +1,6 @@
 
 resource "aws_instance" "dev-manager1" {
-  ami                                  = "ami-03d315ad33b9d49c4"
+  ami                                  = "ami-0261755bbcb8c4a84"
   associate_public_ip_address          = true
   availability_zone                    = "us-east-1f"
   disable_api_stop                     = false
@@ -70,7 +70,7 @@ resource "aws_instance" "dev-manager1" {
 
 
 resource "aws_instance" "dev-nogpu" {
-  ami                                  = "ami-03d315ad33b9d49c4"
+  ami                                  = "ami-0261755bbcb8c4a84"
   instance_type                        = "m7a.medium"
   associate_public_ip_address          = true
   availability_zone                    = "us-east-1f"
@@ -151,7 +151,7 @@ resource "aws_instance" "dev-nogpu" {
 
 
 resource "aws_instance" "dev-gpu" {
-  ami                                  = "ami-09e67e426f25ce0d7"
+  ami                                  = "ami-0261755bbcb8c4a84"
   instance_type                        = "g4dn.2xlarge"
   associate_public_ip_address          = true
   availability_zone                    = "us-east-1a"
